@@ -1,4 +1,4 @@
-﻿
+
 //Launch settings is used by the projct for determining how the project is lauched ex: localhost address , browser, environment etc.
 {
   "$schema": "https://json.schemastore.org/launchsettings.json",

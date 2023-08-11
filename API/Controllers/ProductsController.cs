@@ -1,7 +1,6 @@
 ﻿using Core.Entities;
-using Infrastructure.Data;
+using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
@@ -9,23 +8,37 @@ namespace API.Controllers
     [Route("api/[controller]")]
     public class ProductsController : ControllerBase // return https endpoints so use this without view
     {
-        private readonly StoreContext _context;  // to access the db context
+        private readonly IProductRepository _productRepository;
 
-        public ProductsController(StoreContext context)
+        public ProductsController(IProductRepository productRepository)
         {
-            _context = context;
+            _productRepository = productRepository;
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Product>>> GetProducts()   
+        public async Task<ActionResult<List<Product>>> GetProducts()
         {
-            return await _context.Products.ToListAsync(); 
+            var products = await _productRepository.GetProductsAsync();
+
+            return Ok(products);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}")]      // {} is used if want to pass a parameter to the api method
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
-            return await _context.Products.FindAsync(id); // findasync will search and fetch the primary key
+            return await _productRepository.GetProductByIdAsync(id); // findasync will search and fetch the primary key
+        }
+
+        [HttpGet("brands")]
+        public async Task<ActionResult<List<ProductBrand>>> GetProductBrands()
+        {
+            return Ok(await _productRepository.GetProductsBrandsAsync());
+        }
+
+        [HttpGet("types")]
+        public async Task<ActionResult<List<ProductBrand>>> GetProductTypes()
+        {
+            return Ok(await _productRepository.GetProductsTypesAsync());
         }
     }
 }
