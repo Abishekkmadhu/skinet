@@ -15,6 +15,8 @@ builder.Services.AddDbContext<StoreContext>(opt =>
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));  // =====> we have to add the DBcontext service
 });
 builder.Services.AddScoped<IProductRepository, ProductRepository>(); // scope is how the classes should be disposed . it becomes alive when an http requested for this service // singlton this service is created since the starting to the end of the running of the app // transient it is long 
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>)); // here we added typeof due to type is not defined for this scopes
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();  // => after adding the services to the application we build the app
  
@@ -26,6 +28,8 @@ if (app.Environment.IsDevelopment())
 }
 
 //app.UseHttpsRedirection(); => we dont need it because it may cause warnings in our application
+
+app.UseStaticFiles();  // by default system serves static files from wwwroot folder
 
 app.UseAuthorization(); // 
 
