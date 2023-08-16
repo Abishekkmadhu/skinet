@@ -1,4 +1,5 @@
 ﻿using API.Dtos;
+using API.Errors;
 using AutoMapper;
 using Core.Entities;
 using Core.Interfaces;
@@ -7,9 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    [ApiController] // this is api controller attribute used to define all the controllers in this is an api
-    [Route("api/[controller]")]
-    public class ProductsController : ControllerBase // return https endpoints so use this without view
+    
+    public class ProductsController : BaseApiController 
     {
         public IGenericRepository<Product> _productRepo;
 
@@ -47,6 +47,8 @@ namespace API.Controllers
             var spec = new ProductsWithTypesAndBrandsSpecification(id); //creates new instance // we hit the contructor with para
 
             var product = await _productRepo.GetEntityWithSpec(spec); // findasync will search and fetch the primary key
+
+            if(product == null) return NotFound(new ApiResponse(404));
 
             return _mapper.Map<Product, ProductToReturnDto>(product);
         }

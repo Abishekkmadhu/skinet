@@ -1,4 +1,6 @@
-using Core.Interfaces;
+using API.Errors;
+using API.Extensions;
+using API.Middleware;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,25 +9,19 @@ var builder = WebApplication.CreateBuilder(args); //for running the application 
 // Add services to the container.   // Dependency injection // all the services is added in this part
 
 builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<StoreContext>(opt =>
-{
-    opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));  // =====> we have to add the DBcontext service
-});
-builder.Services.AddScoped<IProductRepository, ProductRepository>(); // scope is how the classes should be disposed . it becomes alive when an http requested for this service // singlton this service is created since the starting to the end of the running of the app // transient it is long 
-builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>)); // here we added typeof due to type is not defined for this scopes
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddApplicationServices(builder.Configuration); // calling the extension service for adding the application services 
 
 var app = builder.Build();  // => after adding the services to the application we build the app
- 
+
 // Configure the HTTP request pipeline.  // => swagger is the way of documenting about our endpoints in our api-localhost:5001/swagger/index.html
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseMiddleware<ExceptionMiddleware>(); // this is used for api error handling for any exceptions 
+
+app.UseStatusCodePagesWithReExecute("/errors/{0}");
+
+app.UseSwagger();  // swagger documentation
+app.UseSwaggerUI();
 
 //app.UseHttpsRedirection(); => we dont need it because it may cause warnings in our application
 
@@ -42,10 +38,10 @@ var logger = services.GetRequiredService<ILogger<Program>>();
 
 try
 {
-    await context.Database.MigrateAsync();  
+    await context.Database.MigrateAsync();
     await StoredContextSeed.seedAsync(context);
 }
-catch(Exception ex)
+catch (Exception ex)
 {
     logger.LogError(ex, "An error has occured during migration or while seeding data...");
 }
